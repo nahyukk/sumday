@@ -1,0 +1,50 @@
+.button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+}
+
+.button:active {
+  transform: scale(0.97);
+}
+
+/* 출근 버튼 (#399777) */
+.start {
+  background-color: #399777;
+  color: white;
+}
+.start:hover {
+  background-color: #2f7b62;
+}
+
+/* 퇴근 버튼 (#BD5656) */
+.end {
+  background-color: #BD5656;
+  color: white;
+}
+.end:hover {
+  background-color: #9a4545;
+}
+
+/* 외출 버튼 (흰색) */
+.pause {
+  background-color: #ffffff;
+  color: #333333;
+  border: 1px solid #cccccc;
+}
+.pause:hover {
+  background-color: #f2f2f2;
+}
+
+/* 재개 버튼 (#5684BD) */
+.resume {
+  background-color: #5684BD;
+  color: white;
+}
+.resume:hover {
+  background-color: #456a96;
+}
