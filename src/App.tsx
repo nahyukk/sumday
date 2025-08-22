@@ -16,7 +16,6 @@ function todayISO(d = new Date()) {
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
 }
-function isoOf(date: Date) { return todayISO(date) }
 
 function loadHistory(): Record<string, number> {
   try { const raw = localStorage.getItem(LS_HISTORY); return raw ? JSON.parse(raw) : {} } catch { return {} }
@@ -71,20 +70,20 @@ export default function App() {
   // 1) running일 때만 오늘 집중시간 증가
   useEffect(() => {
     if (state !== 'running') {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+      if (rafRef.current) clearInterval(rafRef.current)
       rafRef.current = null
       lastTickRef.current = null
       return
     }
-    const loop = (now: number) => {
-      if (!lastTickRef.current) lastTickRef.current = now
-      const dt = now - lastTickRef.current
+    lastTickRef.current = Date.now()
+    const tick = setInterval(() => {
+      const now = Date.now()
+      const dt = now - (lastTickRef.current || now)
       lastTickRef.current = now
       setFocusedMs(v => v + dt)
-      rafRef.current = requestAnimationFrame(loop)
-    }
-    rafRef.current = requestAnimationFrame(loop)
-    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }
+    }, 100) // 100ms 간격으로 업데이트
+    rafRef.current = tick
+    return () => clearInterval(tick)
   }, [state])
 
   // 2) 출근 이후 경과 (8시간 라벨 전환용)
@@ -97,12 +96,12 @@ export default function App() {
 
   // 3) 자정 롤오버: 오늘 focused를 어제로 저장하고 리셋 + idle
   useEffect(() => {
+    let lastDate = todayISO()
     const tick = setInterval(() => {
-      const now = new Date()
-      if (now.getHours() === 0 && now.getMinutes() === 0 && now.getSeconds() === 0) {
-        const yesterday = new Date(now)
-        yesterday.setDate(now.getDate() - 1)
-        const yISO = isoOf(yesterday)
+      const currentDate = todayISO()
+      if (currentDate !== lastDate) {
+        // 날짜가 바뀜 = 자정을 지남
+        const yISO = lastDate
         setHistory(h => {
           const next = { ...h, [yISO]: (h[yISO] ?? 0) + focusedMs }
           const pruned = pruneTo7Days(next)
@@ -114,6 +113,7 @@ export default function App() {
         setSinceStartMs(0)
         setState('idle')
         startedAtRef.current = null
+        lastDate = currentDate
       }
     }, 1000)
     return () => clearInterval(tick)
@@ -166,7 +166,7 @@ export default function App() {
     return () => { if (warnTimer) clearTimeout(warnTimer); if (resetTimer) clearTimeout(resetTimer) }
   }, [state])
 
-  // 7) 버튼 라벨 및 상태 텍스트
+  // 8) 버튼 라벨 및 상태 텍스트
   const primaryLabel = useMemo(() => {
     if (state === 'idle') return '출근'
     if (sinceStartMs >= EIGHT_HOURS) return '퇴근'
@@ -180,27 +180,17 @@ export default function App() {
     return null
   }, [state])
 
-  // 8) 액션
+  // 9) 액션
   function handlePrimary() {
     if (state === 'idle') {
       startedAtRef.current = Date.now()
       setSinceStartMs(0)
-      setFocusedMs(0)
+      // focusedMs는 리셋하지 않음 (누적 유지)
       setState('running')
       return
     }
     if (sinceStartMs >= EIGHT_HOURS) {
-      // 수동 퇴근: 오늘 기록을 오늘 날짜로 저장
-      const tISO = todayISO()
-      setHistory(h => {
-        const next = { ...h, [tISO]: (h[tISO] ?? 0) + focusedMs }
-        const pruned = pruneTo7Days(next)
-        saveHistory(pruned)
-        return pruned
-      })
-      // reset
-      setFocusedMs(0)
-      setSinceStartMs(0)
+      // 수동 퇴근: idle로만 변경, 시간은 자정까지 유지
       setState('idle')
       startedAtRef.current = null
       return
