@@ -76,7 +76,7 @@ h1 {
 }
 
 .banner {
-  position: sticky;
+  position: fixed;
   top: 0;
   width: 100%;
   background: #fff7ed;
@@ -85,6 +85,7 @@ h1 {
   padding: 10px 16px;
   text-align: center;
   font-size: 14px;
+  z-index: 1000;
 }
 
 .banner .dot {
