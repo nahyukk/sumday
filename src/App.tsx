@@ -48,8 +48,16 @@ function latestFinished(history: Record<string, number>): { date: string, ms: nu
   const entries = Object.entries(history)
   if (!entries.length) return null
   entries.sort(([a], [b]) => a.localeCompare(b))
-  const [date, ms] = entries[entries.length - 1]
-  return { date, ms }
+  
+  // 최근 날짜부터 거꾸로 검색해서 0이 아닌 첫 번째 값 찾기
+  for (let i = entries.length - 1; i >= 0; i--) {
+    const [date, ms] = entries[i]
+    if (ms > 0) {
+      return { date, ms }
+    }
+  }
+  
+  return null
 }
 
 export default function App() {
