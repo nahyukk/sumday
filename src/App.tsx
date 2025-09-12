@@ -177,9 +177,9 @@ export default function App() {
   // 8) 버튼 라벨 및 상태 텍스트
   const primaryLabel = useMemo(() => {
     if (state === 'idle') return '출근'
-    if (sinceStartMs >= EIGHT_HOURS) return '퇴근'
+    if (focusedMs >= EIGHT_HOURS) return '퇴근'
     return state === 'running' ? '외출' : '재개'
-  }, [state, sinceStartMs])
+  }, [state, focusedMs])
 
   const statusText = useMemo(() => {
     if (state === 'idle') return null
@@ -191,16 +191,22 @@ export default function App() {
   // 9) 액션
   function handlePrimary() {
     if (state === 'idle') {
-      startedAtRef.current = Date.now()
-      setSinceStartMs(0)
+      // 처음 출근이면 새로 시작, 퇴근 후 재출근이면 기존 시간 유지
+      if (!startedAtRef.current) {
+        startedAtRef.current = Date.now()
+        setSinceStartMs(0)
+      } else {
+        // 재출근: 기존 startedAt 유지하여 sinceStartMs 연속 진행
+        // startedAtRef.current와 sinceStartMs는 그대로 유지
+      }
       // focusedMs는 리셋하지 않음 (누적 유지)
       setState('running')
       return
     }
-    if (sinceStartMs >= EIGHT_HOURS) {
+    if (focusedMs >= EIGHT_HOURS) {
       // 수동 퇴근: idle로만 변경, 시간은 자정까지 유지
       setState('idle')
-      startedAtRef.current = null
+      // startedAtRef는 유지해서 재출근시 연속 진행되도록
       return
     }
     // 토글
