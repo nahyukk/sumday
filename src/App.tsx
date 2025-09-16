@@ -142,8 +142,14 @@ export default function App() {
     }
   }, [state])
 
-  // 6) 자정 5분 전 경고 + 비프
+  // 6) 자정 5분 전 경고 + 비프 (타이머 실행 중일 때만)
   useEffect(() => {
+    // 타이머 실행 중이 아니면 알림 안함
+    if (state !== 'running') {
+      setMidnightWarn(false)
+      return
+    }
+    
     function msToNextMidnight(date = new Date()) {
       const next = new Date(date)
       next.setHours(24, 0, 0, 0)
