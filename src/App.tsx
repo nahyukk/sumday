@@ -72,6 +72,7 @@ export default function App() {
   const startedAtRef = useRef<number | null>(savedState?.startedAt ?? null)
   const lastTickRef = useRef<number | null>(null)
   const rafRef = useRef<number | null>(null)
+  const focusedMsRef = useRef<number>(savedState?.focusedMs ?? 0)
 
   const lastEntry = useMemo(() => latestFinished(history), [history])
 
@@ -88,7 +89,10 @@ export default function App() {
       const now = Date.now()
       const dt = now - (lastTickRef.current || now)
       lastTickRef.current = now
-      setFocusedMs(v => v + dt)
+      setFocusedMs(v => {
+        focusedMsRef.current = v + dt
+        return v + dt
+      })
     }, 100) // 100ms 간격으로 업데이트
     rafRef.current = tick
     return () => clearInterval(tick)
@@ -108,15 +112,17 @@ export default function App() {
     const tick = setInterval(() => {
       const currentDate = todayISO()
       if (currentDate !== lastDate) {
-        // 날짜가 바뀜 = 자정을 지남
+        // 1단계: ref에서 현재 값 가져오기 (클로저 문제 방지)
+        const currentFocusedMs = focusedMsRef.current
         const yISO = lastDate
         setHistory(h => {
-          const next = { ...h, [yISO]: (h[yISO] ?? 0) + focusedMs }
+          const next = { ...h, [yISO]: (h[yISO] ?? 0) + currentFocusedMs }
           const pruned = pruneTo7Days(next)
           saveHistory(pruned)
           return pruned
         })
-        // reset to idle
+        
+        // 2단계: 시간 관련 상태만 리셋 (타이머 실행 중이면 자동 퇴근 처리 됨)
         setFocusedMs(0)
         setSinceStartMs(0)
         setState('idle')
@@ -125,7 +131,7 @@ export default function App() {
       }
     }, 1000)
     return () => clearInterval(tick)
-  }, [focusedMs])
+  }, [])
 
   // 4) 상태 저장
   useEffect(() => {
@@ -221,7 +227,7 @@ export default function App() {
 
   return (
     <div className="wrap">
-      <MidnightBanner show={midnightWarn} />
+      <MidnightBanner show={midnightWarn} onClose={() => setMidnightWarn(false)} />
 
       <div className="card">
         <h1>오늘 투자한 시간</h1>
