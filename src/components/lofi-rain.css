@@ -1,0 +1,53 @@
+:root {
+  --rain-speed: 9s;      /* 비 속도 */
+  --shine-speed: 8s;     /* 유리 반짝임 속도 */
+}
+
+/* 전체 레이어 (배경으로 깔림) */
+.lofi-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+}
+
+/* SVG가 화면을 꽉 채우도록 */
+.lofi-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 비 애니메이션: 패턴 Y를 내려서 흘러내리는 느낌 */
+.rain-layer rect {
+  animation: rainFall var(--rain-speed) linear infinite;
+  will-change: transform;
+  opacity: 0.75;
+}
+@keyframes rainFall {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(24px); } /* pattern 높이만큼 */
+}
+
+/* 유리 반사 애니: 사선으로 살짝 이동했다 돌아오는 느낌 */
+.glass-shine {
+  mix-blend-mode: screen;
+  opacity: 0.18;
+  animation: glassGlide var(--shine-speed) ease-in-out infinite alternate;
+}
+@keyframes glassGlide {
+  0%   { transform: translateX(-8px) translateY(-6px); opacity: 0.12; }
+  100% { transform: translateX(8px)  translateY(6px);  opacity: 0.22; }
+}
+
+/* 창(탭) 비활성화 시 애니메이션 일시정지 */
+.paused .rain-layer rect,
+.paused .glass-shine {
+  animation-play-state: paused;
+}
+
+/* 접근성: 모션 줄임 선호 시 정지 */
+@media (prefers-reduced-motion: reduce) {
+  .rain-layer rect,
+  .glass-shine { animation: none !important; }
+}
