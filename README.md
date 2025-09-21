@@ -1,8 +1,6 @@
 # sumday
 
-⏱️ Personal time tracker + focus trigger, built just for me
-
-A minimalist React TypeScript app for tracking daily focus time with automatic midnight reset and 8-hour work tracking.
+⏱️ Personal time tracker & focus trigger — minimalist React + TS app with daily reset and 8-hour tracking
 
 ## Features
 
@@ -76,4 +74,4 @@ npm run dev
 npm run build
 ```
 
-Built with ❤️ for personal productivity tracking.
+Built with ❤️ as a personal productivity tracker & focus trigger
