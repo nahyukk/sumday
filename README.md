@@ -2,6 +2,8 @@
 
 ⏱️ Personal time tracker & focus trigger — minimalist React + TS app with daily reset and 8-hour tracking
 
+[Use Sumday Timer](https://sumdaytimer.vercel.app/)
+
 ## Features
 
 ### Core Timer
